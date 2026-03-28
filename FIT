@@ -1,0 +1,164 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <cmath>
+#include <iomanip>
+
+using namespace std;
+
+double media(vector<double>);
+double var(vector<double>,double);
+double rho(vector<double>, vector<double>);
+
+double media(vector<double> dati){
+
+        double somma=0.;
+
+        for ( auto i : dati) {
+                somma = somma + i; 
+        }
+        double media= somma / dati.size();
+
+	return media ;
+}
+
+double varN( vector<double> dati, double media){
+
+        double somma2=0.;
+
+        for ( auto i : dati){
+                somma2 =  somma2 + pow (i - media, 2); 
+        }
+        double var = somma2/ ( dati.size()) ; 
+
+        return var;
+}
+
+double rho (vector<double> X, vector<double> Y){
+	double num, den;
+	double sc_x, sc_y;
+	double somma2x, somma2y;
+
+	for(int i=0; i<X.size(); ++i){
+		sc_x=X.at(i)-media(X);
+		sc_y=Y.at(i)-media(Y);
+		num += sc_x*sc_y;
+		somma2x += pow(sc_x,2);
+		somma2y += pow(sc_y,2);
+	}
+
+	den= somma2x*somma2y;
+
+	return num/sqrt(den);
+}
+
+int main(){
+
+    vector <double> data1;
+    vector <double> data2;
+
+    //LETTURA DA FILE
+
+    //Data
+    string filename, ofilename;
+    cout << "Inserire il nome dei file di input e di output: ";
+    cin >> filename >> ofilename;
+    ifstream ifile(filename);
+    ofstream ofile(ofilename);
+
+    string s;
+    double d1, d2;
+    while (getline(ifile,s)){
+        stringstream st(s);
+        st >> d1 >> d2;
+        data1.push_back(d1);
+        data2.push_back(d2);
+    }
+
+    //Incertezze
+    string filename2;
+    cout << "Inserire il nome file con incertezze: ";
+    cin >> filename2;
+    ifstream ifile2(filename2);
+
+    string t;
+    double i1, i2;
+    getline(ifile2,t);
+    stringstream st(t);
+    st >> i1 >> i2;
+    
+
+    //CONFRONTO FRA ERRORI RELATIVI
+    bool ax1=true;
+    double delta1=data1.at(data1.size()-1)-data1.at(0);
+    double delta2=data2.at(data2.size()-1)-data2.at(0);
+    double rel1=i1/delta1;
+    double rel2=i2/delta2;
+
+    if (rel1 > rel2) ax1=false;
+
+    cout << rel1 << "  " << rel2 << "   " << ax1;
+
+    vector <double> data_x;
+    vector <double> data_y;
+    double incx, incy;
+    if (ax1==true){
+        data_x = data1;
+        incx=i1;
+        data_y=data2;
+        incy=i2;
+    }
+    else{
+        data_x=data2;
+        data_y=data1;
+        incx=i2;
+        incy=i1;
+    }
+    
+    //FIT
+    double a,b, sa, sb;
+    double meanx=media(data_x),varx=varN(data_x, meanx) ;
+    double N = data_x.size();
+    double sumy=0, sumysc=0;
+
+    for (int i=0; i<data_x.size(); ++i){
+        sumy += data_y.at(i);
+        sumysc += data_y.at(i)*(data_x.at(i)-meanx);
+    }
+
+    b = sumysc/(N*varx);
+    a = sumy/N - b*meanx;
+    sb = incy/sqrt(N*varx);
+    sa = incy/sqrt(N)*sqrt(1+pow(meanx,2)/varx);
+
+
+    cout << b<<endl;
+    cout << sa<<endl;
+    cout << setprecision(10) << rho(data_x, data_y);
+
+    ofile << setprecision(10)<< b << "+-" << sb << endl;
+    ofile << setprecision(10)<< a << "+-" << sa << endl;
+    ofile << setprecision(10) << rho(data_x, data_y);
+
+
+    //MODULO DI YOUNG e PROPAGAZIONE
+    string ofilename2="Young.txt";
+    ofstream ofile2(ofilename2, ios::app);
+
+    double E, Se;
+    double d = (0.279*pow(10.,-3));
+    double Sez = M_PI * pow((d/2),2);
+    double x0 = 0.950;
+    double sx0=0.002;
+    double Sd= d/100;
+    double Ssez = M_PI * d/2 * Sd;
+
+    E = b * x0/Sez;
+
+    Se = sqrt(pow(sx0*b/Sez,2)+pow(sb*x0/Sez,2)+pow(Ssez*(b*x0)/pow(Sez,2),2));
+
+
+    ofile2 << setprecision(10)<< E << '\t' << Se << endl;
+}
