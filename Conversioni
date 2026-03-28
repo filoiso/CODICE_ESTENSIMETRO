@@ -1,0 +1,58 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <cmath>
+#include <iomanip>
+
+using namespace std;
+
+
+int main(){
+
+    string filename;
+    while (cin >> filename){
+        
+        string ofile_name;
+        cout << "\nInserire nome file uscita: ";
+        cin >>ofile_name;
+
+        ifstream ifile(filename);
+        ofstream ofile(ofile_name, ios::app);
+
+        string s;
+        double f, dx;
+        
+        vector <double> forze;
+        vector <double> spost;
+    
+        while (getline(ifile, s)){
+            stringstream st(s);
+            st >> f >> dx;  
+            forze.push_back(f);
+            spost.push_back(dx); 
+        }
+
+        for (auto &f:forze){
+            f = (f-200)*4*pow(10,-3)*9.80652;
+        }
+
+        for (auto &dx: spost){
+            dx = dx * pow(10, -6);
+        }
+
+        for (int i=0; i<forze.size();i++){
+            ofile << setprecision(10) << forze.at(i) << '\t' << spost.at(i) << endl ;
+        }
+
+    }
+
+
+
+    return 0;
+}
+
+
+
+
