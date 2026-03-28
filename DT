@@ -1,0 +1,28 @@
+#include <iostream>
+#include <cmath>
+#include <iomanip>
+#include <string>
+#include <fstream>
+
+using namespace std;
+
+double distrT (double);
+
+double distrT(double res){
+    double inc = (res/2)/sqrt(6);
+    return inc;
+}
+
+int main(){
+    
+    string ofilename;
+    cout << "Inserire nome file di output: ";
+    cin >> ofilename;
+    ofstream ofile(ofilename);
+    double input;
+    while ( cin>>input ){
+        ofile << distrT(input) <<'\t'; //Radice di 2 come propagazione da tara
+
+    }
+}
+
