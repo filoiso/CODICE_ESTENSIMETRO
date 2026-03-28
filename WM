@@ -1,0 +1,63 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <cmath>
+#include <iomanip>
+
+
+using namespace std;
+
+double media_pesata(vector<double>, vector <double>);
+double inc_wmean(vector<double>);
+
+double media_pesata(vector<double> data, vector<double> inc){
+    
+    double num=0., den=0.;
+
+    for (int i=0; i<data.size(); ++i){
+        num += data.at(i)/pow(inc.at(i),2);
+        den += 1./pow(inc.at(i),2);
+    }
+
+    double wmean= num/den;
+    return wmean;
+}
+
+double inc_wmean(vector<double> inc){
+    double sum=0;
+    for (auto i:inc){
+        sum += 1./pow(i,2);
+    }
+    
+    double wmeaninc=sqrt(1./sum);
+    
+    return wmeaninc;
+}
+
+
+int main(){
+
+    vector <double> data;
+    vector <double> inc;
+    
+     //LETTURA DA FILE
+
+    //Data
+    string filename, ofilename;
+    cout << "Inserire il nome dei file di input: ";
+    cin >> filename;
+    ifstream ifile(filename);
+
+    string s;
+    double d1, d2;
+    while (getline(ifile,s)){
+        stringstream st(s);
+        st >> d1 >> d2;
+        data.push_back(d1);
+        inc.push_back(d2);
+    }
+
+    cout << media_pesata(data, inc) << " +- " << inc_wmean(inc);
+}
